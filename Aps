@@ -1,0 +1,335 @@
+# inclui  < stdio.h >
+# inclui  < stdlib.h >
+# include  < unistd.h >  // sleep
+# include  < time.h >  // para incluir a função de tempo
+# include  < conio.h >  // para incluir getch
+# incluir  < windows.h >  // forçar tamanho da janela
+# include  < locale.h >  // necessário para usar setlocale
+ 
+char jogador [ 20 ]; // nome do jogador
+
+// Código-chave
+enum
+{
+    KEY_ESC = 27 ,
+    KEY_ENTER = 13 ,
+    ARROW_UP = 256 + 72 ,
+    ARROW_DOWN = 256 + 80 ,
+    ARROW_LEFT = 256 + 75 ,
+    ARROW_RIGHT = 256 + 77
+};
+
+menus char [ 5 ] [ 1000 ] = {
+	" Jogar cobrinha " ,
+	" Ver recordes " ,
+	" Como jogar? " ,
+	" Sair do jogo " };
+
+
+estático  int  get_code ( void );
+void  comoJogar ( void );
+void  jogarCobrinha ( int nivel);
+void  verRecordes ( void );
+void  generateMenu ( escolha interna );
+void  generateMenu ( escolha int ) {
+	contagem interna ;
+	printf ( " \ n \ n \ n " );
+	para (contagem = 0 ; contagem < 4 ; contagem ++) {
+		if (escolha == contagem) {
+        	printf ( " \ t [*] % s \ n " , menus [contagem]);
+		} else {
+        	printf ( " \ t [] % s \ n " , menus [contagem]);
+		}
+	}
+
+
+    SMALL_RECT windowSize = { 0 , 0 , 39 , 12 }; // mude os valores
+    SetConsoleWindowInfo ( GetStdHandle (STD_OUTPUT_HANDLE), VERDADEIRO , e windowSize);
+
+
+    int ch;
+    while ((ch = get_code ())! = KEY_ESC) {
+        interruptor (ch)
+        {
+        case ARROW_UP:
+            sistema ( " cls " );
+            if (escolha> 0 ) {
+            	escolha = escolha- 1 ;
+            }
+            generateMenu (escolha);
+            pausa ;
+        case ARROW_DOWN:
+            sistema ( " cls " );
+            if (escolha < 3 ) {
+            	escolha = escolha + 1 ;
+            }
+            generateMenu (escolha);
+            pausa ;
+        case ARROW_LEFT:
+            printf ( " ESQUERDA \ n " );
+            pausa ;
+        case ARROW_RIGHT:
+            printf ( " DIREITO \ n " );
+            pausa ;
+        case KEY_ENTER:
+        	switch (escolha) {
+        		caso  0 :
+        			// iniciar jogo da cobrinha
+        			jogarCobrinha ( 1 );
+        			pausa ;
+        		caso  1 :
+        			// ver registros
+        			verRecordes ();
+        			pausa ;
+        		caso  2 :
+        			// Como jogar
+        			comoJogar ();
+        			pausa ;
+        		caso  3 :
+        			// Sair do jogo
+        			printf ( " saindo .... " );
+        			saída ( 0 );
+        			pausa ;
+
+        	}
+        	pausa ;
+        }
+    }	   
+}
+
+
+void  irColunaLinha ( int coluna, int linha)
+{
+    SetConsoleCursorPosition ( GetStdHandle (STD_OUTPUT_HANDLE), (COORD) {
+        coluna, linha
+    });
+}
+
+void  carregarJogo () {
+	sistema ( " cls " );
+	printf ( " Nome do jogador? \ n " );
+	scanf ( " % [^ \ n ] s " , & jogador);
+	sistema ( " cls " );
+	printf ( " Aguarde o jogo ser carregado ... \ n " );
+	char load [ 11 ] = " carregando " ;
+	para ( int i = 0 ; i < 11 ; ++ i)
+	{
+		printf ( " % c  " , carregar [i]);
+		Sleep ((( rand ()% 100 ) + 350 ));
+	}
+	printf ( " ... \ n Carregamento concluido \ n " );
+	dormir ( 1 );
+	printf ( " Iniciando ... " );
+	sistema ( " cls " );
+}
+void  mostrarLimitesMatriz ( void ) {
+
+	sistema ( " cls " );
+	int matriz [ 12 ] [ 39 ];
+
+
+	para ( int i = 0 ; i < 12 ; ++ i)
+	{
+		para ( int j = 0 ; j < 39 ; ++ j)
+		{
+			if ((j == 0 ) || (i == 0 ) || (i == 11 ) || (j == 38 )) {
+				printf ( " + " );
+			} else {
+				printf ( "  " );
+			}
+			
+		}
+		printf ( " \ n " );
+	}	
+}
+void  mostrarGameOver ( int pontos) {
+	// Salvar o recorde do joguinho
+	// Abrindo o arquivo
+	FILE * arquivo = fopen ( " recordes.txt " , " a " ); // anexar
+
+	if (arquivo! = NULL ) {
+		fprintf (arquivo, " \ n  % 03d P - % s " , pontos, jogador);
+		fclose (arquivo);
+	} else {
+		printf ( " Nenhum recorde registrado! \ n " );
+	}
+
+
+
+	Sono ( 600 );
+	mostrarLimitesMatriz ();
+	irColunaLinha ( 4 , 4 );
+	printf ( " ================================ " );
+	irColunaLinha ( 10 , 5 );
+	printf ( " GAMEOVER " );
+	irColunaLinha ( 4 , 6 );
+	printf ( " ================================ " );
+	getch ();
+	sistema ( " cls " );
+	generateMenu ( 0 );	
+}
+void  jogarCobrinha ( int nivel) {
+	int cobraPosicaoX [ 38 * 13 ] = {}; // Posição (linha) de inicio
+	int cobraPosicaoY [ 13 * 38 ] = {}; // Posição (coluna) de inicio
+	int PontoPosicaoX, PontoPosicaoY; // ligações relativas aos pontos que surgirão
+	int i, tamanhoCobra = 15 ; // tamanho da cobra
+	int Pontos = 1 ; // pontuação do jogador
+	int ch; // código do conjunto de caracteres (utilizado para definir uma tecla precionada)
+	velocidade int = 300 ;  // velocidade do jogo
+	char teclou; // tecla precionada
+	carregarJogo ();
+	mostrarLimitesMatriz ();
+
+	// Gerar a posição do prmeiro ponto
+    PontoPosicaoX = ( rand ()% 37 ) + 1 ;
+    PontoPosicaoY = ( rand ()% 10 ) + 1 ;	
+
+    // Mostrar informações
+    irColunaLinha ( 0 , 12 );
+    printf ( " Precisone alguma tecla para iniciar ... " );
+
+    // Gerar a posição da cobra de forma aleatória
+    cobraPosicaoX [ 0 ] = ( rand ()% 37 ) + 1 ;
+    cobraPosicaoY [ 0 ] = ( rand ()% 10 ) + 1 ;
+    irColunaLinha (cobraPosicaoX [ 0 ], cobraPosicaoY [ 0 ]);
+    printf ( " % c " , ' H ' );
+
+    ch = get_code (); // Aguardar uma tecla para iniciar
+ 	enquanto (ch! = KEY_ESC) {
+ 		
+ 		// Limpar instruções
+ 		para ( int i = 0 ; i < 37 ; ++ i)
+ 		{
+ 			irColunaLinha (i, 12 );
+ 			printf ( "  " );
+ 		}
+
+        // Verificar se uma cobrinha bateu na parede
+        se (
+        	(cobraPosicaoY [ 0 ] == 0 ) ||
+        	(cobraPosicaoY [ 0 ] == 12 ) ||
+        	(cobraPosicaoX [ 0 ] == 0 ) ||
+        	(cobraPosicaoX [ 0 ] == 38 )
+        	)
+        {
+        	mostrarGameOver (pontos);
+        } 		
+
+ 		// Acompanharos movimentos da compra
+		para (i = tamanhoCobra; i> 0 ; i -) {   
+        	cobraPosicaoX [i] = cobraPosicaoX [i- 1 ];
+            cobraPosicaoY [i] = cobraPosicaoY [i- 1 ];
+        }   
+   
+       	// Apagar rastro
+        irColunaLinha (cobraPosicaoX [tamanhoCobra], cobraPosicaoY [tamanhoCobra]);
+        printf ( "  " );
+
+        // Tenho que usar a porra do kbhit porque o getchar pausa o jogo
+        if ( kbhit ()) {
+        	// então quando alguma tecla para precionada iremos pegar o codigo dela
+        	ch = get_code ();        
+        }
+
+        // Verificamos o código da tecla que foi pressionada para fazer a ação correta
+        switch (( int ) ch) {
+	        case ARROW_UP:
+	        	cobraPosicaoY [ 0 ] -;
+	            pausa ;
+	        case ARROW_DOWN:
+	        	cobraPosicaoY [ 0 ] ++;
+	            pausa ;
+	        case ARROW_LEFT:
+	        	cobraPosicaoX [ 0 ] -;
+	            pausa ;
+	        case ARROW_RIGHT:
+	        	cobraPosicaoX [ 0 ] ++;
+	            pausa ;
+            padrão :
+            	ch = get_code ();
+            	pausa ;
+        }
+
+    
+
+        // VERIFIQUE SE A COBRINHA COMEU ALGUM PONTO
+        if (PontoPosicaoX == cobraPosicaoX [ 0 ] && PontoPosicaoY == cobraPosicaoY [ 0 ]) {   
+    		tamanhoCobra ++; // aumentar o tamanho da cobra
+            pontos ++; // aumentar os pontos
+            // Gerar o proximo ponto (gerando as cordenadas de acordo com a area de jogo)
+            PontoPosicaoX = ( rand ()% 37 ) + 1 ;
+            PontoPosicaoY = ( rand ()% 10 ) + 1 ;
+        }        
+
+        // Indo para a posição para imprimir a cobrinha
+        irColunaLinha (cobraPosicaoX [ 0 ], cobraPosicaoY [ 0 ]);
+        printf ( " % c " , ' H ' );
+
+        // Atualizar o placar
+	    irColunaLinha ( 0 , 12 );
+	    printf ( " Pontos: % d - % s " , pontos, jogador);      
+
+        Sono ( 300 );
+        // Verifique se uma cobra bateu nela mesma
+        para (i = 1 ; i <tamanhoCobra; i ++) {
+            if (cobraPosicaoX [ 0 ] == cobraPosicaoX [i] && cobraPosicaoY [ 0 ] == cobraPosicaoY [i]) {
+				mostrarGameOver (pontos);
+            }
+        }
+
+
+
+        // Indo para a posição para imprimir o proximo ponto
+        irColunaLinha (PontoPosicaoX, PontoPosicaoY);
+        printf ( " % c " , ' c ' );
+    }	
+
+	getch ();
+	sistema ( " cls " );
+	generateMenu ( 0 );		
+}
+
+void  verRecordes ( void ) {
+	sistema ( " cls " );
+	char texto_str [ 20 ];
+	FILE * arquivo = fopen ( " recordes.txt " , " r " );
+
+	if (arquivo! = NULL ) {
+		printf ( " Listando: \ n " );
+		while ( fgets (texto_str, 20 , arquivo)! = NULL ) {
+			printf ( " % s " , texto_str);
+		}
+
+		fclose (arquivo);
+	} else {
+		printf ( " Nenhum recorde registrado! \ n " );
+	}
+
+	getch ();
+	sistema ( " cls " );
+	generateMenu ( 1 );	
+}
+
+void  comoJogar ( void ) {
+	sistema ( " cls " );
+	printf ( " Utilizar como setinhas para jogar \ n " );
+	getch ();
+	sistema ( " cls " );
+	generateMenu ( 2 );
+}
+static  int  get_code ( void )
+{
+    int ch = getch ();
+    if (ch == 0 || ch == 224 )
+        ch = 256 + getch ();
+    return ch;
+}
+
+int  main ( int argc, char  const * argv [])
+{
+	time_t t;
+	srand (( sem sinal ) tempo (& t));	
+	setlocale (LC_ALL, " " );
+	generateMenu ( 0 );
+	return  0 ;
+}
