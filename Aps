@@ -1,3 +1,4 @@
+// Aps código da cobra
 # inclui  < stdio.h >
 # inclui  < stdlib.h >
 # include  < unistd.h >  // sleep
